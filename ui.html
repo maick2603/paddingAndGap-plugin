@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 10px;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 10px;
+    }
+    th, td {
+      border: 1px solid #ddd;
+      padding: 8px;
+      text-align: left;
+    }
+    th {
+      background-color: #ccc;
+    }
+    button {
+      margin-top: 10px;
+      padding: 8px 16px;
+      background-color: #007bff;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #0056b3;
+    }
+  </style>
+</head>
+<body>
+  <h2>Padding & Gap</h2>
+  <table id="componentTable">
+    <thead>
+      <tr>
+        <th>Nome</th>
+        <th>Padding-top</th>
+        <th>Padding-bottom</th>
+        <th>Padding-left</th>
+        <th>Padding-right</th>
+        <th>Gap</th>
+      </tr>
+    </thead>
+    <tbody>
+      <!-- As linhas da tabela serão preenchidas dinamicamente -->
+    </tbody>
+  </table>
+  <button id="close">Fechar</button>
+  <button type="button" onclick="tableToCSV()">Download CSV</button>
+  <script>
+    // Recebe os dados do plugin
+    window.onmessage = (event) => {
+      if (event.data.pluginMessage.type === 'componentData') {
+        const componentData = event.data.pluginMessage.data;
+        const tableBody = document.querySelector('#componentTable tbody');
+
+        // Limpa o conteúdo anterior da tabela
+        tableBody.innerHTML = '';
+
+        // Adiciona os dados à tabela
+        componentData.forEach(component => {
+          const row = document.createElement('tr');
+          row.innerHTML = `
+            <td>${component.name}</td>
+            <td>${component.paddingtop} px</td>
+            <td>${component.paddingbottom}px</td>
+            <td>${component.paddingleft}px</td>
+            <td>${component.paddingright}px</td>
+            <td>${component.gap}px</td>
+          `;
+          tableBody.appendChild(row);
+        });
+      }
+    };
+
+    
+
+    // Fecha o plugin
+    document.getElementById('close').onclick = () => {
+      parent.postMessage({ pluginMessage: { type: 'close' } }, '*');
+    };
+
+    // Função para converter a tabela em CSV
+    function tableToCSV() {
+      // Variable to store the final csv data
+      let csv_data = [];
+        // Get each row data
+      let rows = document.getElementsByTagName('tr');
+      for (let i = 0; i < rows.length; i++) {
+          // Get each column data
+          let cols = rows[i].querySelectorAll('td,th');
+          // Stores each csv row data
+          let csvrow = [];
+          for (let j = 0; j < cols.length; j++) {
+              // Get the text data of each cell
+              // of a row and push it to csvrow
+              csvrow.push(cols[j].innerHTML);
+          }
+          // Combine each column value with comma
+          csv_data.push(csvrow.join("|"));
+      }
+      // Combine each row data with new line character
+      csv_data = csv_data.join('\n');
+      // Call this function to download csv file  
+      downloadCSVFile(csv_data);
+    }
+
+  function downloadCSVFile(csv_data) {
+    // Create CSV file object and feed
+    // our csv_data into it
+    CSVFile = new Blob([csv_data], {
+        type: "text/csv"
+    });
+    // Create to temporary link to initiate
+    // download process
+    let temp_link = document.createElement('a');
+    // Download csv file
+    temp_link.download = "PaddingAndGap.csv";
+    let url = window.URL.createObjectURL(CSVFile);
+    temp_link.href = url;
+    // This link should not be displayed
+    temp_link.style.display = "none";
+    document.body.appendChild(temp_link);
+    // Automatically click the link to
+    // trigger download
+    temp_link.click();
+    document.body.removeChild(temp_link);
+  }
+  </script>
+</body>
+</html>
